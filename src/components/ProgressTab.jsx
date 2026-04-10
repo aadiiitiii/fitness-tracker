@@ -1,4 +1,11 @@
 import { useState, useEffect, useMemo } from 'react'
+
+function localDateStr(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 import {
   LineChart,
   Line,
@@ -28,7 +35,7 @@ function getLastNDays(n) {
   for (let i = n - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
-    days.push(d.toISOString().split('T')[0])
+    days.push(localDateStr(d))
   }
   return days
 }
@@ -77,13 +84,13 @@ function computeStreak(workoutDates, foodDates, ratingDates, restDates) {
 
   let streak = 0
   let cursor = new Date()
-  const todayStr = cursor.toISOString().split('T')[0]
+  const todayStr = localDateStr(cursor)
   if (!allActiveDates.has(todayStr)) {
     cursor.setDate(cursor.getDate() - 1)
   }
 
   while (true) {
-    const dateStr = cursor.toISOString().split('T')[0]
+    const dateStr = localDateStr(cursor)
     if (allActiveDates.has(dateStr)) {
       streak++
       cursor.setDate(cursor.getDate() - 1)
@@ -191,7 +198,7 @@ export default function ProgressTab() {
   )
 
   // Weight log
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDateStr(new Date())
   const [weightInput, setWeightInput] = useState('')
   const [weightLog, setWeightLog] = useState([])
 

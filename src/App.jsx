@@ -11,7 +11,10 @@ import { exportAllData, pullFromSupabase, clearLocalData } from './utils/storage
 import { supabase } from './lib/supabase'
 
 function toDateStr(date) {
-  return date.toISOString().split('T')[0]
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 function displayDate(date) {
@@ -33,7 +36,7 @@ const TABS = [
 
 function handleExport() {
   const data = exportAllData()
-  const dateStr = new Date().toISOString().split('T')[0]
+  const dateStr = toDateStr(new Date())
   const filename = `fitness-data-${dateStr}.json`
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)

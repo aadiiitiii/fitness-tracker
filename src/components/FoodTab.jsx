@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Settings2, Pencil } from 'lucide-react'
+
+function localDateStr(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
 import { getFoodForDate, saveFoodLog, getTargets, saveTargets, uuid } from '../utils/storage'
 import { makeLog, mealCalories } from './food/foodApi'
 import AddFoodForm from './food/AddFoodForm'
@@ -40,12 +47,12 @@ export default function FoodTab({ date }) {
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   )
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDateStr(new Date())
   const todayHasFood = date === today && log.meals.some(m => m.items.length > 0)
   const yesterdayStr = (() => {
     const d = new Date(date + 'T12:00:00')
     d.setDate(d.getDate() - 1)
-    return d.toISOString().split('T')[0]
+    return localDateStr(d)
   })()
   const yesterdayLog = getFoodForDate(yesterdayStr)
   const showCopyYesterday = date === today && !todayHasFood && yesterdayLog && yesterdayLog.meals.some(m => m.items.length > 0)
