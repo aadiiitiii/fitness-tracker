@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import { Dumbbell, UtensilsCrossed, Star, BarChart2, ChevronLeft, ChevronRight, Download, LogOut } from 'lucide-react'
-import WorkoutTab from './components/WorkoutTab'
-import FoodTab from './components/FoodTab'
-import RatingTab from './components/RatingTab'
-import ProgressTab from './components/ProgressTab'
 import AuthScreen from './components/AuthScreen'
+import ErrorBoundary from './components/ErrorBoundary'
+
+const WorkoutTab = lazy(() => import('./components/WorkoutTab'))
+const FoodTab = lazy(() => import('./components/FoodTab'))
+const RatingTab = lazy(() => import('./components/RatingTab'))
+const ProgressTab = lazy(() => import('./components/ProgressTab'))
 import { exportAllData, pullFromSupabase, clearLocalData } from './utils/storage'
 import { supabase } from './lib/supabase'
 
@@ -188,10 +190,18 @@ export default function App() {
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'workout' && <WorkoutTab date={dateStr} />}
-        {activeTab === 'food' && <FoodTab date={dateStr} />}
-        {activeTab === 'rating' && <RatingTab date={dateStr} />}
-        {activeTab === 'progress' && <ProgressTab />}
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-48">
+            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+          </div>
+        }>
+          <ErrorBoundary key={activeTab}>
+            {activeTab === 'workout' && <WorkoutTab date={dateStr} />}
+            {activeTab === 'food' && <FoodTab date={dateStr} />}
+            {activeTab === 'rating' && <RatingTab date={dateStr} />}
+            {activeTab === 'progress' && <ProgressTab />}
+          </ErrorBoundary>
+        </Suspense>
       </div>
 
       {/* Bottom Nav */}

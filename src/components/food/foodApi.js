@@ -140,8 +140,11 @@ export async function searchOpenFoodFacts(query) {
 }
 
 export async function searchUSDA(query) {
-  const key = import.meta.env.VITE_USDA_API_KEY || 'DEMO_KEY'
-  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=15&dataType=Survey%20(FNDDS),SR%20Legacy,Foundation&api_key=${key}`
+  // In production, route through the server-side proxy to keep the API key off the client.
+  // In dev (Vite), hit USDA directly with the public DEMO_KEY fallback.
+  const url = import.meta.env.PROD
+    ? `/api/usda-search?query=${encodeURIComponent(query)}`
+    : `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=15&dataType=Survey%20(FNDDS),SR%20Legacy,Foundation&api_key=${import.meta.env.VITE_USDA_API_KEY || 'DEMO_KEY'}`
   const res = await fetch(url)
   if (!res.ok) return []
   const data = await res.json()
