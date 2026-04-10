@@ -291,6 +291,7 @@ function makeExercise() {
     sets: [{ reps: '', weight: '' }],
     duration: '',
     distance: '',
+    notes: '',
   }
 }
 
@@ -321,10 +322,12 @@ function ExerciseCard({ ex, onDelete, prMap }) {
           <span className="font-semibold text-white">{ex.name}</span>
           <span
             className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-              ex.type === 'strength' ? 'bg-emerald-900 text-emerald-300' : 'bg-blue-900 text-blue-300'
+              ex.type === 'strength' ? 'bg-emerald-900 text-emerald-300'
+              : ex.type === 'cardio' ? 'bg-blue-900 text-blue-300'
+              : 'bg-purple-900 text-purple-300'
             }`}
           >
-            {ex.type}
+            {ex.type === 'other' ? 'flexibility' : ex.type}
           </span>
         </div>
         <button onClick={onDelete} className="text-slate-500 hover:text-red-400 p-1 -mt-1 -mr-1">
@@ -358,6 +361,15 @@ function ExerciseCard({ ex, onDelete, prMap }) {
               </div>
             )
           })}
+        </div>
+      ) : ex.type === 'other' ? (
+        <div className="mt-2 space-y-1.5">
+          {ex.duration && (
+            <span className="inline-block bg-slate-700/50 rounded-lg px-3 py-1.5 text-sm text-slate-300">{ex.duration} min</span>
+          )}
+          {ex.notes && (
+            <p className="text-xs text-slate-400 px-1">{ex.notes}</p>
+          )}
         </div>
       ) : (
         <div className="flex gap-4 mt-2 text-sm text-slate-300">
@@ -459,15 +471,19 @@ function AddExerciseForm({ onSave, onCancel }) {
       </div>
 
       <div className="flex gap-2">
-        {['strength', 'cardio'].map(t => (
+        {[
+          { type: 'strength', label: '🏋️ Strength' },
+          { type: 'cardio',   label: '🏃 Cardio' },
+          { type: 'other',    label: '🧘 Other' },
+        ].map(({ type, label }) => (
           <button
-            key={t}
-            onClick={() => setEx(x => ({ ...x, type: t }))}
+            key={type}
+            onClick={() => setEx(x => ({ ...x, type }))}
             className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${
-              ex.type === t ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'
+              ex.type === type ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-slate-300'
             }`}
           >
-            {t === 'strength' ? '🏋️ Strength' : '🏃 Cardio'}
+            {label}
           </button>
         ))}
       </div>
@@ -511,6 +527,30 @@ function AddExerciseForm({ onSave, onCancel }) {
           >
             <Plus size={14} /> Add set
           </button>
+        </div>
+      ) : ex.type === 'other' ? (
+        <div className="space-y-2">
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Duration (min)</label>
+            <input
+              type="number"
+              inputMode="numeric"
+              placeholder="45"
+              value={ex.duration}
+              onChange={e => setEx(x => ({ ...x, duration: e.target.value }))}
+              className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-slate-500 mb-1 block">Notes (optional)</label>
+            <input
+              type="text"
+              placeholder="e.g. Vinyasa flow, felt great"
+              value={ex.notes}
+              onChange={e => setEx(x => ({ ...x, notes: e.target.value }))}
+              className="w-full bg-slate-700 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
         </div>
       ) : (
         <div className="flex gap-2">
