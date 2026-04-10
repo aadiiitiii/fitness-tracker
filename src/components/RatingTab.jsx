@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getRatingForDate, saveRating, getWeightForDate, saveWeightEntry } from '../utils/storage'
+import { getRatingForDate, saveRating, getWeightForDate, saveWeightEntry, getWeightUnit, saveWeightUnit } from '../utils/storage'
 
 const CATEGORIES = [
   { key: 'workout', label: 'Workout Quality', emoji: '💪', desc: 'How hard did you train?' },
@@ -65,19 +65,39 @@ export default function RatingTab({ date }) {
   const [saveState, setSaveState] = useState('idle') // idle | saved
   const [weightInput, setWeightInput] = useState('')
   const [weightSaved, setWeightSaved] = useState(false)
+  const [weightUnit, setWeightUnit] = useState(() => getWeightUnit())
 
   useEffect(() => {
     setRating(getRatingForDate(date) || makeDefault(date))
     setSaveState('idle')
     const entry = getWeightForDate(date)
-    setWeightInput(entry ? String(entry.kg) : '')
+    if (entry) {
+      const unit = getWeightUnit()
+      setWeightInput(unit === 'lbs' ? String(Math.round(entry.kg * 2.205 * 10) / 10) : String(entry.kg))
+    } else {
+      setWeightInput('')
+    }
     setWeightSaved(false)
   }, [date])
 
+  function handleUnitToggle(unit) {
+    const current = parseFloat(weightInput)
+    if (current > 0) {
+      if (unit === 'lbs' && weightUnit === 'kg') {
+        setWeightInput(String(Math.round(current * 2.205 * 10) / 10))
+      } else if (unit === 'kg' && weightUnit === 'lbs') {
+        setWeightInput(String(Math.round((current / 2.205) * 10) / 10))
+      }
+    }
+    setWeightUnit(unit)
+    saveWeightUnit(unit)
+  }
+
   function handleSaveWeight() {
-    const kg = parseFloat(weightInput)
-    if (!kg || kg <= 0) return
-    saveWeightEntry({ date, kg })
+    const val = parseFloat(weightInput)
+    if (!val || val <= 0) return
+    const kg = weightUnit === 'lbs' ? val / 2.205 : val
+    saveWeightEntry({ date, kg: Math.round(kg * 100) / 100 })
     setWeightSaved(true)
     setTimeout(() => setWeightSaved(false), 2000)
   }
@@ -135,18 +155,33 @@ export default function RatingTab({ date }) {
 
       {/* Body Weight */}
       <div className="bg-slate-800 rounded-xl p-4">
-        <div className="text-sm font-medium text-slate-300 mb-2">⚖️ Body Weight</div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-sm font-medium text-slate-300">⚖️ Body Weight</div>
+          <div className="flex gap-1">
+            {['kg', 'lbs'].map(u => (
+              <button
+                key={u}
+                onClick={() => handleUnitToggle(u)}
+                className={`text-xs px-2.5 py-0.5 rounded-full font-medium transition-colors ${
+                  weightUnit === u ? 'bg-purple-600 text-white' : 'bg-slate-700 text-slate-400'
+                }`}
+              >
+                {u}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex gap-2 items-center">
           <input
             type="text"
             inputMode="decimal"
-            placeholder="e.g. 72.5"
+            placeholder={weightUnit === 'lbs' ? 'e.g. 160' : 'e.g. 72.5'}
             value={weightInput}
             onChange={e => setWeightInput(e.target.value.replace(/[^0-9.]/g, ''))}
             onFocus={e => e.target.select()}
             className="flex-1 bg-slate-700 rounded-lg px-3 py-2.5 text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
-          <span className="text-slate-400 text-sm">kg</span>
+          <span className="text-slate-400 text-sm">{weightUnit}</span>
           <button
             onClick={handleSaveWeight}
             disabled={!weightInput || parseFloat(weightInput) <= 0}

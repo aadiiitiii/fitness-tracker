@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2, Upload } from 'lucide-react'
-import { getWorkoutForDate, saveWorkout, getWorkouts, uuid } from '../utils/storage'
+import { getWorkoutForDate, saveWorkout, getWorkouts, getRestDays, toggleRestDay, uuid } from '../utils/storage'
 
 // --- Hevy CSV import ---
 
@@ -603,6 +603,7 @@ export default function WorkoutTab({ date }) {
   const [showForm, setShowForm] = useState(false)
   const [showPaste, setShowPaste] = useState(false)
   const [prMap, setPrMap] = useState({})
+  const [isRestDay, setIsRestDay] = useState(false)
 
   function reload() {
     setWorkout(getWorkoutForDate(date))
@@ -613,6 +614,7 @@ export default function WorkoutTab({ date }) {
     setWorkout(getWorkoutForDate(date))
     setShowForm(false)
     setPrMap(computePRs())
+    setIsRestDay(getRestDays().includes(date))
   }, [date])
 
   function handleSaveExercise(exercise) {
@@ -644,6 +646,11 @@ export default function WorkoutTab({ date }) {
 
   const exercises = workout?.exercises || []
 
+  function handleToggleRestDay() {
+    const nowRest = toggleRestDay(date)
+    setIsRestDay(nowRest)
+  }
+
   return (
     <div className="p-4 space-y-3 pb-6">
       <div className="flex justify-end">
@@ -652,8 +659,19 @@ export default function WorkoutTab({ date }) {
 
       {exercises.length === 0 && !showForm && (
         <div className="text-center py-12 text-slate-500">
-          <div className="text-5xl mb-3">💪</div>
-          <p className="text-sm">No exercises logged for this day</p>
+          {isRestDay ? (
+            <>
+              <div className="text-5xl mb-3">🛌</div>
+              <p className="text-sm">
+                <span className="inline-block bg-blue-900/50 text-blue-300 text-xs font-semibold px-3 py-1 rounded-full">Rest day</span>
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="text-5xl mb-3">💪</div>
+              <p className="text-sm">No exercises logged for this day</p>
+            </>
+          )}
         </div>
       )}
 
@@ -679,6 +697,22 @@ export default function WorkoutTab({ date }) {
             title="Paste from Hevy"
           >
             <Upload size={18} />
+          </button>
+        </div>
+      )}
+
+      {/* Rest day toggle */}
+      {!showForm && !showPaste && (
+        <div className="flex justify-center pt-1">
+          <button
+            onClick={handleToggleRestDay}
+            className={`text-xs px-4 py-1.5 rounded-full border transition-colors ${
+              isRestDay
+                ? 'bg-blue-900/40 border-blue-700 text-blue-300'
+                : 'border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-600'
+            }`}
+          >
+            {isRestDay ? '🛌 Rest day marked' : 'Mark as rest day 🛌'}
           </button>
         </div>
       )}

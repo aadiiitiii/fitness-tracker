@@ -317,3 +317,18 @@ export async function pullFromSupabase() {
 export function clearLocalData() {
   Object.values(KEYS).forEach(k => localStorage.removeItem(k))
 }
+
+// Weight unit preference (kg or lbs)
+export function getWeightUnit() { return localStorage.getItem('ft_weight_unit') || 'kg' }
+export function saveWeightUnit(unit) { localStorage.setItem('ft_weight_unit', unit) }
+
+// Rest days — array of date strings (YYYY-MM-DD)
+export function getRestDays() { return load('ft_rest_days') }
+export function toggleRestDay(date) {
+  const all = load('ft_rest_days')
+  const idx = all.indexOf(date)
+  if (idx >= 0) all.splice(idx, 1)
+  else all.push(date)
+  persist('ft_rest_days', all)
+  return all.includes(date)
+}

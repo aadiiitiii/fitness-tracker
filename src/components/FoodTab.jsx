@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, Trash2, Search, Loader2, X, ChevronRight, Settings2, Droplets, Bookmark, ScanLine } from 'lucide-react'
+import { Plus, Trash2, Search, Loader2, X, ChevronRight, Settings2, Droplets, Bookmark, ScanLine, Pencil } from 'lucide-react'
 import {
   getFoodForDate,
   saveFoodLog,
@@ -703,6 +703,11 @@ function AddFoodForm({ onSave, onCancel }) {
     setRecentFoods(getRecentFoods())
   }, [])
 
+  // Strip punctuation for fuzzy dedup key
+  function dedupKey(name) {
+    return name.toLowerCase().replace(/[^\w\s]/g, '').replace(/\s+/g, ' ').trim()
+  }
+
   useEffect(() => {
     if (query.length < 2) {
       setResults([])
@@ -711,36 +716,39 @@ function AddFoodForm({ onSave, onCancel }) {
     clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(async () => {
       const local = searchIndianFoods(query)
-      const custom = searchCustomFoods(query)
-      // Merge custom into local results, deduplicated
-      const seen = new Set(local.map(f => f.name.toLowerCase()))
-      const uniqueCustom = custom.filter(f => {
-        if (seen.has(f.name.toLowerCase())) return false
-        seen.add(f.name.toLowerCase())
-        return true
-      })
-      const combined = [...custom.map(f => ({ ...f, isCustom: true })), ...local]
-      setResults(combined)
+      const custom = searchCustomFoods(query).map(f => ({ ...f, isCustom: true }))
+
+      // Build local results: custom first → Indian/local, deduped
+      const seen = new Set()
+      const localResults = []
+      for (const f of [...custom, ...local]) {
+        const key = dedupKey(f.name)
+        if (seen.has(key)) continue
+        seen.add(key)
+        localResults.push(f)
+      }
+
+      setResults(localResults)
       setLoading(true)
       try {
         const [off, usda] = await Promise.allSettled([
           searchOpenFoodFacts(query),
           searchUSDA(query),
         ])
-        const offResults = off.status === 'fulfilled' ? off.value : []
+        // Priority: USDA first (higher quality), then OFF
         const usdaResults = usda.status === 'fulfilled' ? usda.value : []
-        const seenAll = new Set([...local, ...uniqueCustom].map(f => f.name.toLowerCase()))
-        const deduped = [...offResults, ...usdaResults].filter(f => {
-          const key = f.name.toLowerCase()
-          if (seenAll.has(key)) return false
-          seenAll.add(key)
-          return true
-        })
-        setResults([
-          ...custom.map(f => ({ ...f, isCustom: true })),
-          ...local,
-          ...deduped,
-        ])
+        const offResults = off.status === 'fulfilled' ? off.value : []
+        const webResults = []
+        const webSeen = new Set(seen)
+        for (const f of [...usdaResults, ...offResults]) {
+          const key = dedupKey(f.name)
+          if (webSeen.has(key)) continue
+          webSeen.add(key)
+          webResults.push(f)
+        }
+        // Total cap: 25 results; local results take priority
+        const maxWeb = Math.max(0, 25 - localResults.length)
+        setResults([...localResults, ...webResults.slice(0, maxWeb)])
       } catch {
         // keep local results
       }
@@ -767,6 +775,7 @@ function AddFoodForm({ onSave, onCancel }) {
       protein: String(nutrition.protein),
       carbs: String(nutrition.carbs),
       fat: String(nutrition.fat),
+      grams: Math.round(effectiveGrams),
     })
     addRecentFood(item)
     onSave(item)
@@ -904,29 +913,39 @@ function AddFoodForm({ onSave, onCancel }) {
 
           {results.length > 0 && query.length >= 2 && (
             <div className="rounded-lg overflow-hidden border border-slate-700 max-h-56 overflow-y-auto">
-              {results.map((r, i) => (
-                <button
-                  key={i}
-                  onClick={() => selectResult(r)}
-                  className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-700 active:bg-slate-600 border-b border-slate-700/50 last:border-0 text-left"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {r.isCustom && (
-                      <Bookmark size={12} className="text-emerald-400 flex-shrink-0" fill="currentColor" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="text-sm text-white leading-snug truncate">{r.name}</div>
-                      <div className="text-xs text-slate-400 mt-0.5">
-                        {r.serving} · {r.calories} kcal · P {r.protein}g
-                        {r.sourceLabel === 'Indian' && <span className="ml-1 text-emerald-500">Indian</span>}
-                        {r.sourceLabel === 'USDA' && <span className="ml-1 text-blue-500">· USDA</span>}
-                        {r.isCustom && <span className="ml-1 text-emerald-400">· Saved</span>}
+              {(() => {
+                const firstWebIdx = results.findIndex(r => r.source === 'web')
+                const hasLocal = firstWebIdx > 0
+                return results.map((r, i) => (
+                  <div key={i}>
+                    {hasLocal && i === firstWebIdx && (
+                      <div className="px-3 py-1 bg-slate-700/40 text-xs text-slate-500 text-center tracking-wider">
+                        — web results —
                       </div>
-                    </div>
+                    )}
+                    <button
+                      onClick={() => selectResult(r)}
+                      className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-700 active:bg-slate-600 border-b border-slate-700/50 last:border-0 text-left"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {r.isCustom && (
+                          <Bookmark size={12} className="text-emerald-400 flex-shrink-0" fill="currentColor" />
+                        )}
+                        <div className="min-w-0">
+                          <div className="text-sm text-white leading-snug truncate">{r.name}</div>
+                          <div className="text-xs text-slate-400 mt-0.5">
+                            {r.serving} · {r.calories} kcal · P {r.protein}g
+                            {r.sourceLabel === 'Indian' && <span className="ml-1 text-emerald-500">Indian</span>}
+                            {r.sourceLabel === 'USDA' && <span className="ml-1 text-blue-500">· USDA</span>}
+                            {r.isCustom && <span className="ml-1 text-emerald-400">· Saved</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <ChevronRight size={14} className="text-slate-500 flex-shrink-0 ml-2" />
+                    </button>
                   </div>
-                  <ChevronRight size={14} className="text-slate-500 flex-shrink-0 ml-2" />
-                </button>
-              ))}
+                ))
+              })()}
             </div>
           )}
 
@@ -1048,48 +1067,108 @@ function AddFoodForm({ onSave, onCancel }) {
 
 function WaterTracker({ date }) {
   const [glasses, setGlasses] = useState(0)
+  const [waterUnit, setWaterUnit] = useState(() => localStorage.getItem('ft_water_unit') || 'glasses')
+  const [mlInput, setMlInput] = useState('')
 
   useEffect(() => {
     const w = getWaterForDate(date)
     setGlasses(w.glasses)
+    setMlInput(String(w.glasses * 250))
   }, [date])
 
-  function update(delta) {
+  function switchUnit(unit) {
+    setWaterUnit(unit)
+    localStorage.setItem('ft_water_unit', unit)
+  }
+
+  function updateGlasses(delta) {
     const next = Math.max(0, glasses + delta)
     setGlasses(next)
+    setMlInput(String(next * 250))
     saveWaterLog({ date, glasses: next })
+  }
+
+  function handleMlChange(val) {
+    setMlInput(val)
+  }
+
+  function handleMlBlur() {
+    const ml = parseInt(mlInput, 10) || 0
+    const nextGlasses = Math.round(ml / 250)
+    setGlasses(nextGlasses)
+    setMlInput(String(nextGlasses * 250))
+    saveWaterLog({ date, glasses: nextGlasses })
   }
 
   const ml = glasses * 250
 
   return (
     <div className="bg-slate-800 rounded-xl p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Droplets size={18} className="text-blue-400" />
           <span className="font-semibold text-white text-sm">Water</span>
-          <span className="text-xs text-slate-400">{ml} ml</span>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => update(-1)}
-            disabled={glasses === 0}
-            className="w-8 h-8 rounded-full bg-slate-700 text-white font-bold hover:bg-slate-600 disabled:opacity-30 flex items-center justify-center text-lg"
-          >
-            −
-          </button>
-          <span className="text-lg font-bold text-blue-400 w-6 text-center">{glasses}</span>
-          <button
-            onClick={() => update(1)}
-            className="w-8 h-8 rounded-full bg-slate-700 text-white font-bold hover:bg-slate-600 flex items-center justify-center text-lg"
-          >
-            +
-          </button>
+        <div className="flex gap-1">
+          {['glasses', 'ml'].map(u => (
+            <button
+              key={u}
+              onClick={() => switchUnit(u)}
+              className={`text-xs px-2.5 py-0.5 rounded-full font-medium transition-colors ${
+                waterUnit === u ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-400'
+              }`}
+            >
+              {u}
+            </button>
+          ))}
         </div>
       </div>
-      <div className="mt-2 text-xs text-slate-500">
-        {glasses} glass{glasses !== 1 ? 'es' : ''} · each glass = 250 ml
-      </div>
+
+      {waterUnit === 'glasses' ? (
+        <>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-400">{ml} ml total</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => updateGlasses(-1)}
+                disabled={glasses === 0}
+                className="w-8 h-8 rounded-full bg-slate-700 text-white font-bold hover:bg-slate-600 disabled:opacity-30 flex items-center justify-center text-lg"
+              >
+                −
+              </button>
+              <span className="text-lg font-bold text-blue-400 w-6 text-center">{glasses}</span>
+              <button
+                onClick={() => updateGlasses(1)}
+                className="w-8 h-8 rounded-full bg-slate-700 text-white font-bold hover:bg-slate-600 flex items-center justify-center text-lg"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {glasses} glass{glasses !== 1 ? 'es' : ''} · each glass = 250 ml
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              inputMode="numeric"
+              step={50}
+              min={0}
+              value={mlInput}
+              onChange={e => handleMlChange(e.target.value)}
+              onBlur={handleMlBlur}
+              className="flex-1 bg-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <span className="text-slate-400 text-sm">ml</span>
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            ≈ {glasses} glass{glasses !== 1 ? 'es' : ''} · saved on blur
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -1100,6 +1179,7 @@ export default function FoodTab({ date }) {
   const [targets, setTargets] = useState(() => getTargets())
   const [showTargetForm, setShowTargetForm] = useState(false)
   const [draftTargets, setDraftTargets] = useState(() => getTargets())
+  const [editingItem, setEditingItem] = useState(null) // { mealName, itemId, draft: {calories,protein,carbs,fat} }
 
   useEffect(() => {
     setLog(getFoodForDate(date) || makeLog(date))
@@ -1163,6 +1243,22 @@ export default function FoodTab({ date }) {
     }
     setLog(updated)
     saveFoodLog(updated)
+  }
+
+  function handleSaveEdit() {
+    if (!editingItem) return
+    const { mealName, itemId, draft } = editingItem
+    const updated = {
+      ...log,
+      meals: log.meals.map(m =>
+        m.name === mealName
+          ? { ...m, items: m.items.map(i => i.id === itemId ? { ...i, ...draft } : i) }
+          : m
+      ),
+    }
+    setLog(updated)
+    saveFoodLog(updated)
+    setEditingItem(null)
   }
 
   function handleSaveTargets() {
@@ -1286,25 +1382,74 @@ export default function FoodTab({ date }) {
             <span className="text-xs text-slate-400 font-medium">{mealCalories(meal)} kcal</span>
           </div>
 
-          {meal.items.map(item => (
-            <div key={item.id} className="flex items-start justify-between py-2 border-t border-slate-700/70">
-              <div>
-                <div className="text-sm text-white">{item.name}</div>
-                <div className="text-xs text-slate-400 mt-0.5">
-                  {item.calories} kcal
-                  {item.protein ? ` · P ${item.protein}g` : ''}
-                  {item.carbs ? ` · C ${item.carbs}g` : ''}
-                  {item.fat ? ` · F ${item.fat}g` : ''}
-                </div>
+          {meal.items.map(item => {
+            const isEditing = editingItem?.mealName === meal.name && editingItem?.itemId === item.id
+            return (
+              <div key={item.id} className="border-t border-slate-700/70">
+                {isEditing ? (
+                  <div className="py-2 space-y-2">
+                    <div className="text-xs text-slate-400 font-medium">{item.name}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { key: 'calories', label: 'Calories', ring: 'focus:ring-orange-500' },
+                        { key: 'protein', label: 'Protein (g)', ring: 'focus:ring-blue-500' },
+                        { key: 'carbs', label: 'Carbs (g)', ring: 'focus:ring-yellow-500' },
+                        { key: 'fat', label: 'Fat (g)', ring: 'focus:ring-pink-500' },
+                      ].map(({ key, label, ring }) => (
+                        <div key={key}>
+                          <label className="text-xs text-slate-500 block mb-1">{label}</label>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            value={editingItem.draft[key]}
+                            onChange={e => setEditingItem(ei => ({ ...ei, draft: { ...ei.draft, [key]: e.target.value } }))}
+                            className={`w-full bg-slate-700 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:ring-1 ${ring}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button onClick={() => setEditingItem(null)} className="flex-1 py-1.5 bg-slate-700 rounded-lg text-slate-300 text-xs">Cancel</button>
+                      <button onClick={handleSaveEdit} className="flex-1 py-1.5 bg-emerald-600 rounded-lg text-white text-xs font-semibold">Save</button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between py-2">
+                    <div>
+                      <div className="text-sm text-white">
+                        {item.name}
+                        {item.grams ? <span className="text-xs text-slate-400 ml-1">· {item.grams}g</span> : null}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {item.calories} kcal
+                        {item.protein ? ` · P ${item.protein}g` : ''}
+                        {item.carbs ? ` · C ${item.carbs}g` : ''}
+                        {item.fat ? ` · F ${item.fat}g` : ''}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      <button
+                        onClick={() => setEditingItem({
+                          mealName: meal.name,
+                          itemId: item.id,
+                          draft: { calories: item.calories, protein: item.protein, carbs: item.carbs, fat: item.fat },
+                        })}
+                        className="text-slate-500 hover:text-emerald-400 p-1"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(meal.name, item.id)}
+                        className="text-slate-500 hover:text-red-400 p-1 -mr-1"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => handleDeleteItem(meal.name, item.id)}
-                className="text-slate-500 hover:text-red-400 p-1 -mr-1 flex-shrink-0"
-              >
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
+            )
+          })}
 
           {addingTo === meal.name ? (
             <AddFoodForm

@@ -50,6 +50,7 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [syncError, setSyncError] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(() => !localStorage.getItem('ft_onboarded'))
 
   useEffect(() => {
     // Check for an existing session on mount
@@ -171,6 +172,19 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* Onboarding banner */}
+      {showOnboarding && (
+        <div className="flex-none bg-emerald-900/60 border-b border-emerald-800 px-4 py-2 flex items-center justify-between gap-3">
+          <span className="text-xs text-emerald-200">👋 Welcome! Log workouts → track food → rate your day → see progress</span>
+          <button
+            onClick={() => { localStorage.setItem('ft_onboarded', '1'); setShowOnboarding(false) }}
+            className="flex-shrink-0 text-xs font-semibold text-emerald-300 border border-emerald-700 rounded-full px-2.5 py-0.5 hover:bg-emerald-800 transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      )}
 
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto">
