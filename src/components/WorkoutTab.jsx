@@ -85,6 +85,59 @@ function parseHevyCSV(text) {
   }))
 }
 
+// --- Strong CSV parser ---
+// Strong export format: Date,Workout Name,Exercise Name,Set Order,Weight,Reps,RPE,Notes
+
+function parseStrongCSV(text) {
+  const lines = text.trim().split(/\r?\n/)
+  const headers = parseCSVLine(lines[0]).map(h => h.trim())
+
+  const rows = lines.slice(1)
+    .map(line => {
+      const values = parseCSVLine(line)
+      return Object.fromEntries(headers.map((h, i) => [h, (values[i] || '').trim()]))
+    })
+    .filter(r => r['Exercise Name'])
+
+  const weightCol = headers.find(h => h.toLowerCase().includes('weight')) || 'Weight'
+
+  const byDate = {}
+  for (const row of rows) {
+    const raw = row['Date'] || row['Start Date'] || ''
+    if (!raw) continue
+    const date = raw.slice(0, 10) // YYYY-MM-DD
+    if (!byDate[date]) byDate[date] = {}
+    const exName = row['Exercise Name']
+    if (!byDate[date][exName]) byDate[date][exName] = []
+    byDate[date][exName].push(row)
+  }
+
+  return Object.entries(byDate).map(([date, exercises]) => ({
+    date,
+    exercises: Object.entries(exercises).map(([name, sets]) => ({
+      id: uuid(),
+      name,
+      type: 'strength',
+      sets: sets.map(s => ({
+        reps: s['Reps'] || '',
+        weight: s[weightCol] || '',
+      })),
+      duration: '',
+      distance: '',
+    })),
+  }))
+}
+
+// Auto-detect CSV format from headers
+function detectAndParseCSV(text) {
+  const firstLine = text.split(/\r?\n/)[0].toLowerCase()
+  if (firstLine.includes('title') || firstLine.includes('start time')) return parseHevyCSV(text)
+  if (firstLine.includes('workout name') || firstLine.includes('set order')) return parseStrongCSV(text)
+  // Last resort: try both
+  try { return parseHevyCSV(text) } catch {}
+  return parseStrongCSV(text)
+}
+
 // --- Paste workout text parser ---
 
 function parseSetLine(line) {
@@ -189,7 +242,7 @@ function HevyImportButton({ onImport }) {
     const reader = new FileReader()
     reader.onload = ev => {
       try {
-        const workouts = parseHevyCSV(ev.target.result)
+        const workouts = detectAndParseCSV(ev.target.result)
         const existing = getWorkouts()
         const existingDates = new Set(existing.map(w => w.date))
         let imported = 0, skipped = 0
@@ -217,12 +270,12 @@ function HevyImportButton({ onImport }) {
         onClick={() => fileRef.current.click()}
         className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-400 transition-colors"
       >
-        <Upload size={13} /> Import Hevy CSV
+        <Upload size={13} /> Import CSV (Hevy / Strong)
       </button>
       {status && (
         <p className={`text-xs mt-1 ${status.error ? 'text-red-400' : 'text-emerald-400'}`}>
           {status.error
-            ? 'Failed to parse CSV — make sure it\'s a Hevy export.'
+            ? 'Failed to parse — supports Hevy and Strong CSV exports.'
             : `Imported ${status.imported} day${status.imported !== 1 ? 's' : ''}${status.skipped ? `, skipped ${status.skipped} already logged` : ''}.`}
         </p>
       )}

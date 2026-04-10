@@ -19,9 +19,9 @@ import {
   saveWeightEntry,
 } from '../utils/storage'
 
-function getLast30Days() {
+function getLastNDays(n) {
   const days = []
-  for (let i = 29; i >= 0; i--) {
+  for (let i = n - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
     days.push(d.toISOString().split('T')[0])
@@ -29,15 +29,11 @@ function getLast30Days() {
   return days
 }
 
-function getLast90Days() {
-  const days = []
-  for (let i = 89; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    days.push(d.toISOString().split('T')[0])
-  }
-  return days
-}
+const PERIODS = [
+  { label: '7d', value: 7 },
+  { label: '30d', value: 30 },
+  { label: '90d', value: 90 },
+]
 
 function shortDate(dateStr) {
   const d = new Date(dateStr + 'T12:00:00')
@@ -127,8 +123,10 @@ function buildExerciseProgression(workouts, exerciseName) {
 }
 
 export default function ProgressTab() {
-  const days = useMemo(() => getLast30Days(), [])
-  const last90 = useMemo(() => getLast90Days(), [])
+  const [period, setPeriod] = useState(30)
+
+  const days = useMemo(() => getLastNDays(period), [period])
+  const last90 = useMemo(() => getLastNDays(Math.max(90, period)), [period])
   const allWorkouts = useMemo(() => getWorkouts(), [])
   const allFood = useMemo(() => getFoodLogs(), [])
   const allRatings = useMemo(() => getRatings(), [])
@@ -229,7 +227,24 @@ export default function ProgressTab() {
 
   return (
     <div className="p-4 space-y-4 pb-6">
-      <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">Last 30 Days</p>
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+          Last {period} Days
+        </p>
+        <div className="flex gap-1">
+          {PERIODS.map(p => (
+            <button
+              key={p.value}
+              onClick={() => setPeriod(p.value)}
+              className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${
+                period === p.value ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Stats Row — 2x2 grid */}
       <div className="grid grid-cols-2 gap-2">
