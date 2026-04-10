@@ -229,6 +229,119 @@ const COMMON_FOODS = [
   { name: 'Guacamole',                 defaultServing: 30,  unitLabel: '2 tbsp',          calories: 50,  protein: 0.7,  carbs: 2.5,  fat: 4.5  },
   { name: 'BBQ Sauce',                 defaultServing: 30,  unitLabel: '2 tbsp',          calories: 60,  protein: 0.3,  carbs: 14.0, fat: 0.3  },
   { name: 'Hot Sauce',                 defaultServing: 5,   unitLabel: '1 tsp',           calories: 0,   protein: 0.0,  carbs: 0.1,  fat: 0.0  },
+
+  // ── Chinese ──────────────────────────────────────────────────────────────
+  { name: 'Fried Rice (plain)',         defaultServing: 200, unitLabel: '1 cup',           calories: 290, protein: 6.0,  carbs: 45.0, fat: 9.0  },
+  { name: 'Chicken Fried Rice',         defaultServing: 200, unitLabel: '1 cup',           calories: 340, protein: 14.0, carbs: 45.0, fat: 11.0 },
+  { name: 'Egg Fried Rice',             defaultServing: 200, unitLabel: '1 cup',           calories: 310, protein: 8.0,  carbs: 45.0, fat: 11.0 },
+  { name: 'Chow Mein',                  defaultServing: 200, unitLabel: '1 cup',           calories: 290, protein: 11.0, carbs: 40.0, fat: 9.0  },
+  { name: 'Lo Mein',                    defaultServing: 200, unitLabel: '1 cup',           calories: 310, protein: 12.0, carbs: 44.0, fat: 9.0  },
+  { name: 'Pork Dumpling / Gyoza',      defaultServing: 60,  unitLabel: '3 pieces',        calories: 150, protein: 8.0,  carbs: 16.0, fat: 6.0  },
+  { name: 'Steamed Dim Sum (Har Gow)', defaultServing: 75,  unitLabel: '3 pieces',        calories: 115, protein: 7.0,  carbs: 15.0, fat: 3.0  },
+  { name: 'Spring Roll (fried)',        defaultServing: 65,  unitLabel: '1 roll',          calories: 163, protein: 4.0,  carbs: 17.0, fat: 9.0  },
+  { name: 'Wonton Soup',                defaultServing: 240, unitLabel: '1 bowl',          calories: 100, protein: 7.0,  carbs: 12.0, fat: 2.0  },
+  { name: 'Sweet & Sour Chicken',       defaultServing: 200, unitLabel: '1 cup',           calories: 370, protein: 25.0, carbs: 38.0, fat: 12.0 },
+  { name: 'Kung Pao Chicken',           defaultServing: 200, unitLabel: '1 cup',           calories: 350, protein: 28.0, carbs: 18.0, fat: 18.0 },
+  { name: 'Mapo Tofu',                  defaultServing: 200, unitLabel: '1 cup',           calories: 220, protein: 12.0, carbs: 10.0, fat: 14.0 },
+  { name: 'Peking Duck',                defaultServing: 100, calories: 337, protein: 19.0, carbs: 0.0,  fat: 29.0 },
+
+  // ── Japanese ─────────────────────────────────────────────────────────────
+  { name: 'Sushi Roll / Maki',          defaultServing: 150, unitLabel: '6 pieces',        calories: 300, protein: 13.0, carbs: 47.0, fat: 6.0  },
+  { name: 'Sashimi',                    defaultServing: 100, unitLabel: '6 slices',        calories: 130, protein: 22.0, carbs: 0.0,  fat: 4.0  },
+  { name: 'Ramen',                      defaultServing: 500, unitLabel: '1 bowl',          calories: 450, protein: 22.0, carbs: 60.0, fat: 12.0 },
+  { name: 'Miso Soup',                  defaultServing: 240, unitLabel: '1 bowl',          calories: 40,  protein: 3.0,  carbs: 5.0,  fat: 1.0  },
+  { name: 'Edamame',                    defaultServing: 155, unitLabel: '1 cup',           calories: 188, protein: 17.0, carbs: 14.0, fat: 8.0  },
+  { name: 'Teriyaki Chicken',           defaultServing: 100, calories: 200, protein: 24.0, carbs: 8.0,  fat: 8.0  },
+  { name: 'Tonkatsu',                   defaultServing: 100, calories: 288, protein: 20.0, carbs: 13.0, fat: 18.0 },
+  { name: 'Onigiri',                    defaultServing: 100, unitLabel: '1 rice ball',     calories: 185, protein: 4.0,  carbs: 38.0, fat: 1.0  },
+  { name: 'Udon Noodle Soup',           defaultServing: 300, unitLabel: '1 bowl',          calories: 280, protein: 10.0, carbs: 56.0, fat: 2.0  },
+  { name: 'Tempura Shrimp',             defaultServing: 90,  unitLabel: '3 pieces',        calories: 216, protein: 11.0, carbs: 18.0, fat: 11.0 },
+
+  // ── Italian ──────────────────────────────────────────────────────────────
+  { name: 'Spaghetti Bolognese',        defaultServing: 350, unitLabel: '1 bowl',          calories: 490, protein: 26.0, carbs: 56.0, fat: 16.0 },
+  { name: 'Penne Arrabbiata',           defaultServing: 250, unitLabel: '1 bowl',          calories: 350, protein: 12.0, carbs: 60.0, fat: 8.0  },
+  { name: 'Pasta Carbonara',            defaultServing: 250, unitLabel: '1 bowl',          calories: 490, protein: 22.0, carbs: 50.0, fat: 22.0 },
+  { name: 'Pesto Pasta',                defaultServing: 250, unitLabel: '1 bowl',          calories: 420, protein: 14.0, carbs: 52.0, fat: 18.0 },
+  { name: 'Lasagna',                    defaultServing: 250, unitLabel: '1 piece',         calories: 430, protein: 22.0, carbs: 42.0, fat: 18.0 },
+  { name: 'Risotto',                    defaultServing: 220, unitLabel: '1 cup',           calories: 310, protein: 8.0,  carbs: 52.0, fat: 8.0  },
+  { name: 'Gnocchi',                    defaultServing: 200, unitLabel: '1 cup',           calories: 250, protein: 6.0,  carbs: 50.0, fat: 3.0  },
+  { name: 'Minestrone Soup',            defaultServing: 240, unitLabel: '1 bowl',          calories: 80,  protein: 4.0,  carbs: 14.0, fat: 2.0  },
+  { name: 'Bruschetta',                 defaultServing: 80,  unitLabel: '2 pieces',        calories: 150, protein: 4.0,  carbs: 22.0, fat: 5.0  },
+  { name: 'Tiramisu',                   defaultServing: 100, unitLabel: '1 slice',         calories: 283, protein: 5.0,  carbs: 27.0, fat: 17.0 },
+
+  // ── Mexican ──────────────────────────────────────────────────────────────
+  { name: 'Burrito Bowl',               defaultServing: 400, unitLabel: '1 bowl',          calories: 520, protein: 25.0, carbs: 72.0, fat: 14.0 },
+  { name: 'Quesadilla',                 defaultServing: 150, unitLabel: '1 large',         calories: 430, protein: 18.0, carbs: 43.0, fat: 21.0 },
+  { name: 'Enchilada',                  defaultServing: 180, unitLabel: '1 piece',         calories: 320, protein: 16.0, carbs: 38.0, fat: 12.0 },
+  { name: 'Nachos',                     defaultServing: 150, unitLabel: '1 serving',       calories: 480, protein: 14.0, carbs: 52.0, fat: 25.0 },
+  { name: 'Tamale',                     defaultServing: 100, unitLabel: '1 tamale',        calories: 220, protein: 6.0,  carbs: 28.0, fat: 10.0 },
+  { name: 'Refried Beans',              defaultServing: 120, unitLabel: '½ cup',           calories: 180, protein: 9.0,  carbs: 28.0, fat: 4.0  },
+  { name: 'Pico de Gallo',              defaultServing: 30,  unitLabel: '2 tbsp',          calories: 10,  protein: 0.4,  carbs: 2.0,  fat: 0.1  },
+  { name: 'Fajita Chicken',             defaultServing: 200, unitLabel: '1 serving',       calories: 350, protein: 30.0, carbs: 22.0, fat: 15.0 },
+  { name: 'Churros',                    defaultServing: 50,  unitLabel: '1 churro',        calories: 145, protein: 2.0,  carbs: 22.0, fat: 6.0  },
+
+  // ── Mediterranean ────────────────────────────────────────────────────────
+  { name: 'Falafel',                    defaultServing: 90,  unitLabel: '3 pieces',        calories: 195, protein: 8.0,  carbs: 22.0, fat: 9.0  },
+  { name: 'Shawarma (chicken wrap)',    defaultServing: 300, unitLabel: '1 wrap',          calories: 500, protein: 28.0, carbs: 52.0, fat: 18.0 },
+  { name: 'Tabbouleh',                  defaultServing: 150, unitLabel: '1 cup',           calories: 120, protein: 4.0,  carbs: 15.0, fat: 6.0  },
+  { name: 'Greek Salad',                defaultServing: 200, unitLabel: '1 bowl',          calories: 170, protein: 5.0,  carbs: 10.0, fat: 13.0 },
+  { name: 'Tzatziki',                   defaultServing: 30,  unitLabel: '2 tbsp',          calories: 25,  protein: 2.0,  carbs: 2.0,  fat: 1.0  },
+  { name: 'Shakshuka',                  defaultServing: 250, unitLabel: '1 serving',       calories: 220, protein: 13.0, carbs: 14.0, fat: 12.0 },
+  { name: 'Lentil Soup',                defaultServing: 240, unitLabel: '1 bowl',          calories: 130, protein: 9.0,  carbs: 22.0, fat: 2.0  },
+  { name: 'Dolma / Stuffed Vine Leaves',defaultServing: 90,  unitLabel: '3 pieces',        calories: 170, protein: 4.0,  carbs: 22.0, fat: 8.0  },
+  { name: 'Chicken Kebab',              defaultServing: 100, calories: 185, protein: 22.0, carbs: 3.0,  fat: 10.0 },
+  { name: 'Baklava',                    defaultServing: 60,  unitLabel: '1 piece',         calories: 245, protein: 3.0,  carbs: 29.0, fat: 14.0 },
+
+  // ── South Indian ─────────────────────────────────────────────────────────
+  { name: 'Sambar',                     defaultServing: 240, unitLabel: '1 bowl',          calories: 120, protein: 6.0,  carbs: 18.0, fat: 3.0  },
+  { name: 'Rasam',                      defaultServing: 240, unitLabel: '1 bowl',          calories: 60,  protein: 3.0,  carbs: 9.0,  fat: 2.0  },
+  { name: 'Uttapam',                    defaultServing: 120, unitLabel: '1 piece',         calories: 200, protein: 6.0,  carbs: 35.0, fat: 5.0  },
+  { name: 'Curd Rice',                  defaultServing: 200, unitLabel: '1 bowl',          calories: 220, protein: 7.0,  carbs: 38.0, fat: 5.0  },
+  { name: 'Pongal',                     defaultServing: 200, unitLabel: '1 bowl',          calories: 250, protein: 7.0,  carbs: 42.0, fat: 7.0  },
+  { name: 'Medu Vada',                  defaultServing: 60,  unitLabel: '1 vada',          calories: 150, protein: 5.0,  carbs: 18.0, fat: 7.0  },
+  { name: 'Appam',                      defaultServing: 60,  unitLabel: '1 appam',         calories: 120, protein: 3.0,  carbs: 22.0, fat: 2.0  },
+  { name: 'Avial',                      defaultServing: 200, unitLabel: '1 bowl',          calories: 180, protein: 4.0,  carbs: 16.0, fat: 12.0 },
+  { name: 'Coconut Chutney',            defaultServing: 30,  unitLabel: '2 tbsp',          calories: 60,  protein: 1.0,  carbs: 3.0,  fat: 5.0  },
+
+  // ── Gujarati ─────────────────────────────────────────────────────────────
+  { name: 'Dhokla',                     defaultServing: 80,  unitLabel: '2 pieces',        calories: 140, protein: 6.0,  carbs: 22.0, fat: 3.0  },
+  { name: 'Thepla',                     defaultServing: 50,  unitLabel: '1 thepla',        calories: 130, protein: 3.0,  carbs: 19.0, fat: 5.0  },
+  { name: 'Khaman',                     defaultServing: 80,  unitLabel: '2 pieces',        calories: 150, protein: 6.0,  carbs: 24.0, fat: 4.0  },
+  { name: 'Khandvi',                    defaultServing: 60,  unitLabel: '3 pieces',        calories: 120, protein: 5.0,  carbs: 18.0, fat: 3.0  },
+  { name: 'Handvo',                     defaultServing: 100, unitLabel: '1 slice',         calories: 200, protein: 7.0,  carbs: 30.0, fat: 7.0  },
+  { name: 'Dal Dhokli',                 defaultServing: 250, unitLabel: '1 bowl',          calories: 290, protein: 10.0, carbs: 48.0, fat: 7.0  },
+  { name: 'Undhiyu',                    defaultServing: 200, unitLabel: '1 bowl',          calories: 280, protein: 8.0,  carbs: 32.0, fat: 14.0 },
+
+  // ── Punjabi Snacks ───────────────────────────────────────────────────────
+  { name: 'Aloo Tikki',                 defaultServing: 80,  unitLabel: '1 piece',         calories: 165, protein: 4.0,  carbs: 25.0, fat: 6.0  },
+  { name: 'Bhatura',                    defaultServing: 100, unitLabel: '1 bhatura',       calories: 295, protein: 7.0,  carbs: 40.0, fat: 13.0 },
+  { name: 'Punjabi Kadhi',              defaultServing: 240, unitLabel: '1 bowl',          calories: 200, protein: 7.0,  carbs: 20.0, fat: 10.0 },
+  { name: 'Makki Ki Roti',              defaultServing: 60,  unitLabel: '1 roti',          calories: 165, protein: 3.0,  carbs: 30.0, fat: 4.0  },
+  { name: 'Sarson Ka Saag',             defaultServing: 200, unitLabel: '1 bowl',          calories: 180, protein: 6.0,  carbs: 16.0, fat: 11.0 },
+  { name: 'Amritsari Kulcha',           defaultServing: 100, unitLabel: '1 kulcha',        calories: 270, protein: 7.0,  carbs: 42.0, fat: 9.0  },
+  { name: 'Mathri',                     defaultServing: 40,  unitLabel: '2 pieces',        calories: 175, protein: 3.0,  carbs: 21.0, fat: 9.0  },
+  { name: 'Pinni',                      defaultServing: 50,  unitLabel: '1 piece',         calories: 220, protein: 5.0,  carbs: 26.0, fat: 12.0 },
+
+  // ── Fitness — Protein Sources ────────────────────────────────────────────
+  { name: 'Casein Protein',             defaultServing: 30,  unitLabel: '1 scoop',         calories: 110, protein: 24.0, carbs: 3.0,  fat: 1.0  },
+  { name: 'Plant-based Protein',        defaultServing: 30,  unitLabel: '1 scoop',         calories: 120, protein: 21.0, carbs: 5.0,  fat: 2.0  },
+  { name: 'Pea Protein',                defaultServing: 30,  unitLabel: '1 scoop',         calories: 110, protein: 21.0, carbs: 2.0,  fat: 2.0  },
+  { name: 'Egg White Protein',          defaultServing: 30,  unitLabel: '1 scoop',         calories: 105, protein: 25.0, carbs: 1.0,  fat: 0.5  },
+  { name: 'Collagen Peptides',          defaultServing: 10,  unitLabel: '1 scoop',         calories: 35,  protein: 9.0,  carbs: 0.0,  fat: 0.0  },
+  { name: 'Mass Gainer',                defaultServing: 100, unitLabel: '1 scoop',         calories: 380, protein: 30.0, carbs: 60.0, fat: 5.0  },
+  { name: 'Tempeh',                     defaultServing: 100, calories: 193, protein: 19.0, carbs: 9.0,  fat: 11.0 },
+  { name: 'Seitan',                     defaultServing: 100, calories: 370, protein: 75.0, carbs: 14.0, fat: 2.0  },
+  { name: 'Smoked Salmon',              defaultServing: 100, calories: 117, protein: 18.0, carbs: 0.0,  fat: 5.0  },
+  { name: 'Sardines (canned)',          defaultServing: 100, calories: 208, protein: 25.0, carbs: 0.0,  fat: 11.0 },
+  { name: 'String Cheese',              defaultServing: 28,  unitLabel: '1 stick',         calories: 80,  protein: 7.0,  carbs: 1.0,  fat: 5.0  },
+
+  // ── Fitness — Performance & Supplements ──────────────────────────────────
+  { name: 'Creatine',                   defaultServing: 5,   unitLabel: '1 tsp',           calories: 0,   protein: 0.0,  carbs: 0.0,  fat: 0.0  },
+  { name: 'BCAA Powder',                defaultServing: 7,   unitLabel: '1 scoop',         calories: 20,  protein: 5.0,  carbs: 0.0,  fat: 0.0  },
+  { name: 'Pre-workout',                defaultServing: 10,  unitLabel: '1 scoop',         calories: 20,  protein: 0.0,  carbs: 4.0,  fat: 0.0  },
+  { name: 'Energy Gel',                 defaultServing: 32,  unitLabel: '1 packet',        calories: 100, protein: 0.0,  carbs: 25.0, fat: 0.0  },
+  { name: 'Dates',                      defaultServing: 24,  unitLabel: '3 dates',         calories: 67,  protein: 0.4,  carbs: 18.0, fat: 0.1  },
+  { name: 'Clif Bar',                   defaultServing: 68,  unitLabel: '1 bar',           calories: 250, protein: 9.0,  carbs: 45.0, fat: 5.0  },
 ]
 
 function makeLog(date) {
