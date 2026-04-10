@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   LineChart,
   Line,
@@ -127,11 +127,11 @@ function buildExerciseProgression(workouts, exerciseName) {
 }
 
 export default function ProgressTab() {
-  const days = getLast30Days()
-  const last90 = getLast90Days()
-  const allWorkouts = getWorkouts()
-  const allFood = getFoodLogs()
-  const allRatings = getRatings()
+  const days = useMemo(() => getLast30Days(), [])
+  const last90 = useMemo(() => getLast90Days(), [])
+  const allWorkouts = useMemo(() => getWorkouts(), [])
+  const allFood = useMemo(() => getFoodLogs(), [])
+  const allRatings = useMemo(() => getRatings(), [])
 
   const workoutDates = new Set(allWorkouts.map(w => w.date))
   const foodDates = new Set(allFood.map(f => f.date))

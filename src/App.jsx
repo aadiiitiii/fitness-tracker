@@ -49,6 +49,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [user, setUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
+  const [syncError, setSyncError] = useState(false)
 
   useEffect(() => {
     // Check for an existing session on mount
@@ -60,6 +61,13 @@ export default function App() {
       setAuthLoading(false)
     })
 
+    // Listen for sync errors from storage layer
+    const handleSyncError = () => {
+      setSyncError(true)
+      setTimeout(() => setSyncError(false), 5000)
+    }
+    window.addEventListener('supabase-sync-error', handleSyncError)
+
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
@@ -70,7 +78,10 @@ export default function App() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('supabase-sync-error', handleSyncError)
+    }
   }, [])
 
   function changeDate(delta) {
@@ -103,6 +114,13 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-900 text-white max-w-md mx-auto relative">
+      {/* Sync error banner */}
+      {syncError && (
+        <div className="flex-none bg-red-900/80 text-red-200 text-xs text-center py-1.5 px-4">
+          Sync failed — data saved locally, will retry when connection restores.
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex-none px-4 pt-12 pb-3 bg-slate-900 border-b border-slate-800">
         <div className="flex items-center justify-between mb-1">

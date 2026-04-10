@@ -338,13 +338,12 @@ function findLastSession(name) {
 }
 
 function formatSetsHint(sets) {
-  // Summarize as e.g. "3×10 @ 80 lbs" using the most common reps/weight
   if (!sets.length) return ''
   const count = sets.length
-  // Use first set as representative
-  const { reps, weight } = sets[0]
-  if (weight && reps) return `${count}×${reps} @ ${weight} lbs`
-  if (reps) return `${count}×${reps}`
+  // Use the heaviest set as representative (not the first, which may be a warm-up)
+  const best = sets.reduce((max, s) => Number(s.weight) > Number(max.weight) ? s : max, sets[0])
+  if (best.weight && best.reps) return `${count}×${best.reps} @ ${best.weight} lbs`
+  if (best.reps) return `${count}×${best.reps}`
   return `${count} sets`
 }
 

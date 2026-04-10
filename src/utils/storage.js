@@ -190,6 +190,11 @@ export function exportAllData() {
 
 // ── Supabase sync helpers (fire-and-forget, internal) ────────────────────
 
+// Dispatch a custom event so App.jsx can show a sync error banner
+function emitSyncError() {
+  window.dispatchEvent(new CustomEvent('supabase-sync-error'))
+}
+
 // Uses getSession() — reads cached token, no network call
 async function getUserId() {
   const { data: { session } } = await supabase.auth.getSession()
@@ -198,47 +203,58 @@ async function getUserId() {
 
 async function syncWorkoutToSupabase(workout) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('workouts').upsert({ user_id: uid, date: workout.date, exercises: workout.exercises }, { onConflict: 'user_id,date' })
+  const { error } = await supabase.from('workouts').upsert({ user_id: uid, date: workout.date, exercises: workout.exercises }, { onConflict: 'user_id,date' })
+  if (error) emitSyncError()
 }
 
 async function syncFoodToSupabase(log) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('food_logs').upsert({ user_id: uid, date: log.date, meals: log.meals }, { onConflict: 'user_id,date' })
+  const { error } = await supabase.from('food_logs').upsert({ user_id: uid, date: log.date, meals: log.meals }, { onConflict: 'user_id,date' })
+  if (error) emitSyncError()
 }
 
 async function syncRatingToSupabase(rating) {
   const uid = await getUserId(); if (!uid) return
   const { date, workout, nutrition, energy, sleep, notes } = rating
-  await supabase.from('ratings').upsert({ user_id: uid, date, workout, nutrition, energy, sleep, notes }, { onConflict: 'user_id,date' })
+  const { error } = await supabase.from('ratings').upsert({ user_id: uid, date, workout, nutrition, energy, sleep, notes }, { onConflict: 'user_id,date' })
+  if (error) emitSyncError()
 }
 
 async function syncWeightToSupabase(entry) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('weight_log').upsert({ user_id: uid, date: entry.date, kg: entry.kg }, { onConflict: 'user_id,date' })
+  const { error } = await supabase.from('weight_log').upsert({ user_id: uid, date: entry.date, kg: entry.kg }, { onConflict: 'user_id,date' })
+  if (error) emitSyncError()
 }
 
 async function syncWaterToSupabase(entry) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('water_log').upsert({ user_id: uid, date: entry.date, glasses: entry.glasses }, { onConflict: 'user_id,date' })
+  const { error } = await supabase.from('water_log').upsert({ user_id: uid, date: entry.date, glasses: entry.glasses }, { onConflict: 'user_id,date' })
+  if (error) emitSyncError()
 }
 
 async function syncTargetsToSupabase(t) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('targets').upsert({ user_id: uid, ...t }, { onConflict: 'user_id' })
+  const { error } = await supabase.from('targets').upsert({ user_id: uid, ...t }, { onConflict: 'user_id' })
+  if (error) emitSyncError()
 }
 
 async function syncCustomFoodToSupabase(food) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('custom_foods').upsert({ user_id: uid, ...food }, { onConflict: 'user_id,name' })
+  const { error } = await supabase.from('custom_foods').upsert({ user_id: uid, ...food }, { onConflict: 'user_id,name' })
+  if (error) emitSyncError()
 }
 
 async function syncRecentFoodsToSupabase(foods) {
   const uid = await getUserId(); if (!uid) return
-  await supabase.from('recent_foods').upsert({ user_id: uid, foods }, { onConflict: 'user_id' })
+  const { error } = await supabase.from('recent_foods').upsert({ user_id: uid, foods }, { onConflict: 'user_id' })
+  if (error) emitSyncError()
 }
 
-// Upload all local localStorage data to Supabase (first-login migration)
+// Upload all local localStorage data to Supabase (first-login migration).
+// Each item is tried independently so one bad row doesn't block the rest.
 async function pushLocalToSupabase(uid) {
+  const safe = async (promise) => { try { await promise } catch {} }
+
   const localWorkouts = load(KEYS.WORKOUTS)
   const localFood = load(KEYS.FOOD)
   const localRatings = load(KEYS.RATINGS)
@@ -249,14 +265,14 @@ async function pushLocalToSupabase(uid) {
   const localRecentFoods = load(KEYS.RECENT_FOODS)
 
   await Promise.all([
-    ...localWorkouts.map(w => supabase.from('workouts').upsert({ user_id: uid, date: w.date, exercises: w.exercises }, { onConflict: 'user_id,date' })),
-    ...localFood.map(f => supabase.from('food_logs').upsert({ user_id: uid, date: f.date, meals: f.meals }, { onConflict: 'user_id,date' })),
-    ...localRatings.map(r => supabase.from('ratings').upsert({ user_id: uid, date: r.date, workout: r.workout, nutrition: r.nutrition, energy: r.energy, sleep: r.sleep, notes: r.notes }, { onConflict: 'user_id,date' })),
-    ...localWeight.map(w => supabase.from('weight_log').upsert({ user_id: uid, date: w.date, kg: w.kg }, { onConflict: 'user_id,date' })),
-    ...localWater.map(w => supabase.from('water_log').upsert({ user_id: uid, date: w.date, glasses: w.glasses }, { onConflict: 'user_id,date' })),
-    localTargets ? supabase.from('targets').upsert({ user_id: uid, ...localTargets }, { onConflict: 'user_id' }) : Promise.resolve(),
-    ...localCustomFoods.map(f => supabase.from('custom_foods').upsert({ user_id: uid, ...f }, { onConflict: 'user_id,name' })),
-    localRecentFoods.length ? supabase.from('recent_foods').upsert({ user_id: uid, foods: localRecentFoods }, { onConflict: 'user_id' }) : Promise.resolve(),
+    ...localWorkouts.map(w => safe(supabase.from('workouts').upsert({ user_id: uid, date: w.date, exercises: w.exercises }, { onConflict: 'user_id,date' }))),
+    ...localFood.map(f => safe(supabase.from('food_logs').upsert({ user_id: uid, date: f.date, meals: f.meals }, { onConflict: 'user_id,date' }))),
+    ...localRatings.map(r => safe(supabase.from('ratings').upsert({ user_id: uid, date: r.date, workout: r.workout, nutrition: r.nutrition, energy: r.energy, sleep: r.sleep, notes: r.notes }, { onConflict: 'user_id,date' }))),
+    ...localWeight.map(w => safe(supabase.from('weight_log').upsert({ user_id: uid, date: w.date, kg: w.kg }, { onConflict: 'user_id,date' }))),
+    ...localWater.map(w => safe(supabase.from('water_log').upsert({ user_id: uid, date: w.date, glasses: w.glasses }, { onConflict: 'user_id,date' }))),
+    localTargets ? safe(supabase.from('targets').upsert({ user_id: uid, ...localTargets }, { onConflict: 'user_id' })) : Promise.resolve(),
+    ...localCustomFoods.map(f => safe(supabase.from('custom_foods').upsert({ user_id: uid, ...f }, { onConflict: 'user_id,name' }))),
+    localRecentFoods.length ? safe(supabase.from('recent_foods').upsert({ user_id: uid, foods: localRecentFoods }, { onConflict: 'user_id' })) : Promise.resolve(),
   ])
 }
 

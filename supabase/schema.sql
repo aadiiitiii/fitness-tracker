@@ -70,8 +70,15 @@ create table if not exists targets (
   protein int default 150,
   carbs int default 200,
   fat int default 65,
+  updated_at timestamptz default now(),
   unique(user_id)
 );
+-- Auto-update updated_at on every write
+create or replace function update_updated_at()
+returns trigger language plpgsql as $$
+begin new.updated_at = now(); return new; end; $$;
+create trigger targets_updated_at before update on targets
+  for each row execute procedure update_updated_at();
 alter table targets enable row level security;
 create policy "own targets" on targets for all using (auth.uid() = user_id);
 

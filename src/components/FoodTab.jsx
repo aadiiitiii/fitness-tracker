@@ -384,7 +384,7 @@ async function searchOpenFoodFacts(query) {
       return {
         source: 'web',
         sourceLabel: 'OFF',
-        name: p.product_name,
+        name: sanitizeName(p.product_name),
         serving: `${g}g`,
         calories: Math.round((n['energy-kcal_100g'] || 0) * factor),
         protein: Math.round((n['proteins_100g'] || 0) * factor * 10) / 10,
@@ -423,7 +423,7 @@ async function searchUSDA(query) {
       return {
         source: 'web',
         sourceLabel: 'USDA',
-        name: f.description.replace(/,\s*raw$/i, '').replace(/,\s*NFS$/i, ''),
+        name: sanitizeName(f.description.replace(/,\s*raw$/i, '').replace(/,\s*NFS$/i, '')),
         serving: `${g}g`,
         calories: Math.round(cal * factor),
         protein: Math.round(protein * factor * 10) / 10,
@@ -461,6 +461,10 @@ function searchIndianFoods(query) {
   })
 }
 
+function sanitizeName(str) {
+  return String(str).replace(/[^\x20-\x7E\u00A0-\u024F]/g, '').trim().slice(0, 200) || 'Unknown'
+}
+
 // Barcode lookup via Open Food Facts
 async function lookupBarcode(barcode) {
   const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
@@ -474,7 +478,7 @@ async function lookupBarcode(barcode) {
   return {
     source: 'web',
     sourceLabel: 'Scanned',
-    name: p.product_name || p.abbreviated_product_name || 'Unknown product',
+    name: sanitizeName(p.product_name || p.abbreviated_product_name || 'Unknown product'),
     serving: `${g}g`,
     unitLabel: null,
     calories: Math.round((n['energy-kcal_100g'] || 0) * factor),
@@ -546,11 +550,16 @@ function BarcodeScanner({ onResult, onClose }) {
   }
 
   async function handleCode(code) {
+    const clean = code.trim()
+    if (!/^\d{8,14}$/.test(clean)) {
+      setError('Invalid barcode — must be 8–14 digits.')
+      return
+    }
     setLooking(true)
     try {
-      const food = await lookupBarcode(code)
+      const food = await lookupBarcode(clean)
       if (food) { onResult(food); return }
-      setError(`No food found for barcode ${code}.`)
+      setError(`No food found for barcode ${clean}.`)
     } catch {
       setError('Lookup failed. Try again.')
     }
