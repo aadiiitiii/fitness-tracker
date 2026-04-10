@@ -1,10 +1,12 @@
-import { useState } from 'react'
-import { Dumbbell, UtensilsCrossed, Star, BarChart2, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Dumbbell, UtensilsCrossed, Star, BarChart2, ChevronLeft, ChevronRight, Download, LogOut } from 'lucide-react'
 import WorkoutTab from './components/WorkoutTab'
 import FoodTab from './components/FoodTab'
 import RatingTab from './components/RatingTab'
 import ProgressTab from './components/ProgressTab'
-import { exportAllData } from './utils/storage'
+import AuthScreen from './components/AuthScreen'
+import { exportAllData, pullFromSupabase, clearLocalData } from './utils/storage'
+import { supabase } from './lib/supabase'
 
 function toDateStr(date) {
   return date.toISOString().split('T')[0]
@@ -45,11 +47,54 @@ function handleExport() {
 export default function App() {
   const [activeTab, setActiveTab] = useState('workout')
   const [selectedDate, setSelectedDate] = useState(new Date())
+  const [user, setUser] = useState(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  useEffect(() => {
+    // Check for an existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user)
+        pullFromSupabase()
+      }
+      setAuthLoading(false)
+    })
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        pullFromSupabase().then(() => setUser(session.user))
+      } else if (event === 'SIGNED_OUT') {
+        clearLocalData()
+        setUser(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [])
 
   function changeDate(delta) {
     const d = new Date(selectedDate)
     d.setDate(d.getDate() + delta)
     setSelectedDate(d)
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut()
+  }
+
+  // Full-screen loading spinner while checking session
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-slate-900">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Show auth screen if not logged in
+  if (!user) {
+    return <AuthScreen />
   }
 
   const dateStr = toDateStr(selectedDate)
@@ -78,8 +123,17 @@ export default function App() {
             >
               <Download size={18} />
             </button>
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
+              title="Sign out"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
+        {/* User email */}
+        <p className="text-xs text-slate-500 truncate max-w-[180px] mb-1">{user.email}</p>
         {showDateNav && (
           <div className="flex items-center justify-between mt-1">
             <button

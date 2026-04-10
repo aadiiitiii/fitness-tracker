@@ -63,7 +63,9 @@ const INDIAN_FOODS = [
   { name: 'Banana',                    defaultServing: 120, unitLabel: '1 banana (medium)',   calories: 105, protein: 1,    carbs: 27,   fat: 0.3  },
   { name: 'Apple',                     defaultServing: 180, unitLabel: '1 apple (medium)',    calories: 95,  protein: 0.5,  carbs: 25,   fat: 0.3  },
   { name: 'Mango',                     defaultServing: 165, unitLabel: '1 cup sliced',        calories: 107, protein: 1,    carbs: 28,   fat: 0.4  },
-  { name: 'Whey Protein (scoop)',      defaultServing: 30,  unitLabel: '1 scoop',             calories: 120, protein: 24,   carbs: 3,    fat: 2    },
+  { name: 'Whey Protein (scoop)',                       defaultServing: 30,  unitLabel: '1 scoop', calories: 120, protein: 24,   carbs: 3,    fat: 2    },
+  { name: 'ON Gold Standard Whey',                      defaultServing: 30,  unitLabel: '1 scoop', calories: 120, protein: 24,   carbs: 3,    fat: 1    },
+  { name: 'ON Gold Standard Whey (Double Rich Choc)',   defaultServing: 31,  unitLabel: '1 scoop', calories: 120, protein: 24,   carbs: 4,    fat: 1.5  },
 ]
 
 // Common whole foods — values per defaultServing grams (same structure as INDIAN_FOODS)
