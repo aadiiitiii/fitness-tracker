@@ -57,7 +57,7 @@ export function searchLocalFoods(query) {
     const g = f.defaultServing
     return {
       source: 'local',
-      sourceLabel: 'Indian',
+      sourceLabel: 'Local',
       name: f.name,
       serving: `${g}g`,
       unitLabel: f.unitLabel || null,
@@ -79,28 +79,39 @@ export function searchLocalFoods(query) {
 export function searchCustomFoods(query) {
   const customs = getCustomFoods()
   const q = query.toLowerCase()
-  return customs.filter(f => f.name.toLowerCase().includes(q)).map(f => ({
-    source: 'custom',
-    sourceLabel: 'Custom',
-    name: f.name,
-    serving: f.serving || '100g',
-    calories: Number(f.calories) || 0,
-    protein: Number(f.protein) || 0,
-    carbs: Number(f.carbs) || 0,
-    fat: Number(f.fat) || 0,
-    per100: {
-      calories: Number(f.calories) || 0,
-      protein: Number(f.protein) || 0,
-      carbs: Number(f.carbs) || 0,
-      fat: Number(f.fat) || 0,
-    },
-    defaultServing: 100,
-  }))
+  return customs.filter(f => f.name.toLowerCase().includes(q)).map(f => {
+    // Custom foods are always saved with serving: '100g', so stored values are per-100g.
+    // Parse the serving string in case that ever changes.
+    const servingG = parseFloat(f.serving) || 100
+    const cal = Number(f.calories) || 0
+    const protein = Number(f.protein) || 0
+    const carbs = Number(f.carbs) || 0
+    const fat = Number(f.fat) || 0
+    const factor = 100 / servingG
+    return {
+      source: 'custom',
+      sourceLabel: 'Custom',
+      name: f.name,
+      serving: f.serving || '100g',
+      calories: cal,
+      protein,
+      carbs,
+      fat,
+      per100: {
+        calories: cal * factor,
+        protein: protein * factor,
+        carbs: carbs * factor,
+        fat: fat * factor,
+      },
+      defaultServing: servingG,
+    }
+  })
 }
 
 export async function searchOpenFoodFacts(query) {
   const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=1&page_size=20&fields=product_name,serving_quantity,serving_size,nutriments&sort_by=unique_scans_n`
   const res = await fetch(url)
+  if (!res.ok) return []
   const data = await res.json()
   return (data.products || [])
     .filter(p => p.product_name && p.nutriments?.['energy-kcal_100g'])
@@ -129,16 +140,15 @@ export async function searchOpenFoodFacts(query) {
 }
 
 export async function searchUSDA(query) {
-  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=15&dataType=Survey%20(FNDDS),SR%20Legacy,Foundation&api_key=DEMO_KEY`
+  const key = import.meta.env.VITE_USDA_API_KEY || 'DEMO_KEY'
+  const url = `https://api.nal.usda.gov/fdc/v1/foods/search?query=${encodeURIComponent(query)}&pageSize=15&dataType=Survey%20(FNDDS),SR%20Legacy,Foundation&api_key=${key}`
   const res = await fetch(url)
+  if (!res.ok) return []
   const data = await res.json()
   return (data.foods || [])
     .filter(f => f.description && f.foodNutrients?.length)
     .map(f => {
-      function getNutrient(name) {
-        const n = f.foodNutrients.find(n => n.nutrientName === name)
-        return n?.value || 0
-      }
+      const getNutrient = name => f.foodNutrients.find(n => n.nutrientName === name)?.value ?? 0
       const cal = getNutrient('Energy')
       const protein = getNutrient('Protein')
       const carbs = getNutrient('Carbohydrate, by difference')
@@ -164,6 +174,7 @@ export async function searchUSDA(query) {
 
 export async function lookupBarcode(barcode) {
   const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`)
+  if (!res.ok) return null
   const data = await res.json()
   if (data.status !== 1 || !data.product) return null
   const p = data.product

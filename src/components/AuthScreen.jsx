@@ -11,7 +11,7 @@ const FEATURES = [
   {
     Icon: UtensilsCrossed,
     title: 'Food & Macros',
-    desc: '100+ Indian & Western foods. Barcode scanner. Hit your calorie targets.',
+    desc: '400+ foods — Indian, Korean, Thai & more. Barcode scanner. Hit your calorie targets.',
   },
   {
     Icon: Star,

@@ -258,7 +258,7 @@ export default function AddFoodForm({ onSave, onCancel }) {
                           <div className="text-sm text-white leading-snug truncate">{r.name}</div>
                           <div className="text-xs text-slate-400 mt-0.5">
                             {r.serving} · {r.calories} kcal · P {r.protein}g
-                            {r.sourceLabel === 'Indian' && <span className="ml-1 text-emerald-500">Indian</span>}
+                            {r.sourceLabel === 'Local' && <span className="ml-1 text-emerald-500">Local</span>}
                             {r.sourceLabel === 'USDA' && <span className="ml-1 text-blue-500">· USDA</span>}
                             {r.isCustom && <span className="ml-1 text-emerald-400">· Saved</span>}
                           </div>

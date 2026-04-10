@@ -345,7 +345,6 @@ export const COMMON_FOODS = [
   { name: 'Amboli',                     defaultServing: 80,  unitLabel: '1 amboli',         calories: 150, protein: 4.0,  carbs: 27.0, fat: 3.0  },
   { name: 'Sol Kadhi',                  defaultServing: 200, unitLabel: '1 glass',          calories: 60,  protein: 1.0,  carbs: 8.0,  fat: 3.0  },
   { name: 'Kolhapuri Mutton',           defaultServing: 240, unitLabel: '1 bowl',           calories: 420, protein: 34.0, carbs: 8.0,  fat: 28.0 },
-  { name: 'Pav Bhaji',                  defaultServing: 350, unitLabel: '1 plate',          calories: 500, protein: 12.0, carbs: 72.0, fat: 18.0 },
   { name: 'Bhakri (jowar)',             defaultServing: 60,  unitLabel: '1 bhakri',         calories: 130, protein: 3.5,  carbs: 26.0, fat: 1.5  },
   { name: 'Zunka',                      defaultServing: 150, unitLabel: '1 bowl',           calories: 170, protein: 8.0,  carbs: 20.0, fat: 7.0  },
   { name: 'Sabudana Vada',              defaultServing: 60,  unitLabel: '1 vada',           calories: 160, protein: 3.0,  carbs: 22.0, fat: 7.0  },
@@ -489,8 +488,6 @@ export const COMMON_FOODS = [
 
   // ── Fermented & Functional Foods ────────────────────────────────────────
   { name: 'Kefir (plain)',              defaultServing: 240, unitLabel: '1 cup',            calories: 104, protein: 9.0,  carbs: 11.6, fat: 2.5  },
-  { name: 'Kimchi',                     defaultServing: 100, calories: 23,  protein: 1.7,  carbs: 4.0,  fat: 0.5 },
   { name: 'Miso Paste',                 defaultServing: 17,  unitLabel: '1 tbsp',           calories: 34,  protein: 2.2,  carbs: 4.3,  fat: 1.0  },
   { name: 'Sauerkraut',                 defaultServing: 100, calories: 19,  protein: 0.9,  carbs: 4.3,  fat: 0.1 },
-  { name: 'Tempeh',                     defaultServing: 100, calories: 193, protein: 19.0, carbs: 9.0,  fat: 11.0 },
 ]
